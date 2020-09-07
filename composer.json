@@ -1,0 +1,17 @@
+{
+    "name": "rafirandoni/robot-bca-personal",
+    "description": "Robot to fetch bca personal mutation",
+    "type": "library",
+    "require": {
+        "guzzlehttp/guzzle": "^7.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.3"
+    },
+    "authors": [
+        {
+            "name": "Mohamad Rafi",
+            "email": "rafi.randoni@gmail.com"
+        }
+    ]
+}
