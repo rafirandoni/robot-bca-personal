@@ -36,7 +36,10 @@ class Inquiry
             return $statements;
         }
 
-        return $statements->data;
+        return (object)[
+            'success' => true,
+            'message' => $statements->data
+        ];
     }
 
     protected function fetchAccountStatement()

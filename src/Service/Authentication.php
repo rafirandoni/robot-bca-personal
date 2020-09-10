@@ -52,6 +52,7 @@ class Authentication
 
         return (object)[
             'success' => true,
+            'response' => null,
         ];
     }
 
