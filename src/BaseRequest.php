@@ -11,7 +11,11 @@ trait BaseRequest
     protected $curl;
     protected $baseUrl;
     protected $timeout = 60;    // in second
-    protected $cookiePath;
+    protected $cookieDir;
+    protected $cookieName;
+    protected $debug = true;
+
+    protected $ipAddress;
 
     public function setConfiguration(array $configuration = [])
     {
@@ -23,8 +27,12 @@ trait BaseRequest
             $this->setTimeout($configuration['timeout']);
         }
 
-        if (isset($configuration['cookie_path'])) {
-            $this->setCookiePath($configuration['cookie_path']);
+        if (isset($configuration['cookie_dir'])) {
+            $this->setCookieDir($configuration['cookie_dir']);
+        }
+
+        if (isset($configuration['cookie_name'])) {
+            $this->setCookieName($configuration['cookie_name']);
         }
     }
 
@@ -38,15 +46,25 @@ trait BaseRequest
         $this->timeout = $timeout;
     }
 
-    public function setCookiePath(string $cookiePath)
+    public function setCookieDir(string $cookieDir)
     {
-        $this->cookiePath = $cookiePath;
+        $this->cookieDir = rtrim($cookieDir, '/').DIRECTORY_SEPARATOR;
     }
 
+    public function setCookieName(string $cookieName)
+    {
+        $this->cookieName = $cookieName;
+    }
+
+    /**
+     * Get cookie instance
+     *
+     * @return \GuzzleHttp\Cookie\FileCookieJar
+     */
     public function getCookieJar()
     {
         if (! $this->cookieJar) {
-            $cookieFile = $this->cookiePath;
+            $cookieFile = $this->cookieDir.$this->cookieName;
             if (! file_exists($cookieFile)) {
                 @touch($cookieFile);
             }
@@ -56,6 +74,11 @@ trait BaseRequest
         return $this->cookieJar;
     }
 
+    /**
+     * Get curl instance
+     *
+     * @return \GuzzleHttp\Client;
+     */
     public function getCurl()
     {
         if (! $this->curl) {
@@ -78,11 +101,37 @@ trait BaseRequest
         return $this->curl;
     }
 
+    /**
+     * Create new request
+     *
+     * @param string $method
+     * @param string $uri
+     * @param array $options
+     * @return object
+     */
     public function request(string $method, string $uri, array $options = [])
     {
+        if ($this->debug) {
+            $debugUri = ltrim($uri, '/');
+            if (isset($options['query'])) {
+                $debugUri .= '?'.http_build_query($options['query']);
+            }
+            $debugUri = str_replace('/', '-', $debugUri);
+
+            if (strlen($debugUri) < 1) {
+                $debugUri = mt_rand(10000, 99999);
+            }
+
+            $logPath = $this->cookieDir.date('ymd-').$debugUri.'.html';
+        }
+
         try {
             $curlRequest = $this->getCurl()->request($method, $uri, $options);
         } catch (\Exception $e) {
+            if ($this->debug) {
+                $this->storeLog($logPath, $e->getMessage());
+            }
+
             return (object)[
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -96,9 +145,54 @@ trait BaseRequest
             unset($temp);
         }
 
+        if ($this->debug) {
+            $this->storeLog($logPath, $response);
+        }
+
         return (object)[
             'success' => true,
             'data' => $response,
         ];
+    }
+
+    public function storeLog(string $filepath = '', ?string $log = null)
+    {
+        if (substr($filepath, -1) == '/') {
+            $filepath = rtrim($filepath, '/').'landing';
+        }
+
+        $f = fopen($filepath, 'w+');
+        fwrite($f, $log);
+        fclose($f);
+    }
+
+    public function getIpAddress()
+    {
+        if (! $this->ipAddress) {
+            try {
+                $client = new Client([
+                    'base_uri' => 'https://www.cloudflare.com',
+                    'verify' => false,
+                    'timeout' => 3
+                ]);
+                $curlRequest = $client->request('GET', '/cdn-cgi/trace', []);
+                $response = $curlRequest->getBody()->getContents();
+
+                $ipAddress = null;
+                foreach (explode("\n", $response) as $res) {
+                    if (strpos($res, 'ip=') !== false) {
+                        $ipAddress = str_replace('ip=', '', $res);
+                        break;
+                    }
+                }
+
+                if ($ipAddress) {
+                    $this->ipAddress = $ipAddress;
+                }
+            } catch (\Exception $e) {
+            }
+        }
+
+        return $this->ipAddress;
     }
 }
