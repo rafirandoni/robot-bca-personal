@@ -2,6 +2,11 @@
     "name": "rafirandoni/robot-bca-personal",
     "description": "Robot to fetch bca personal mutation",
     "type": "library",
+    "autoload": {
+        "psr-4": {
+            "BcaPersonal\\": "./src"
+        }
+    },
     "require": {
         "guzzlehttp/guzzle": "^7.0"
     },
