@@ -50,9 +50,9 @@ class Authentication
             return $fetchWelcomePageSelectTransaction;
         }
 
-        return (object)[$this->services['inquiry'])
+        return (object)[
             'success' => true,
-            'response' => null,
+            'data' => null,
         ];
     }
 
