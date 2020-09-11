@@ -38,7 +38,7 @@ class Inquiry
 
         return (object)[
             'success' => true,
-            'message' => $statements->data
+            'data' => $statements->data
         ];
     }
 
