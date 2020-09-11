@@ -114,8 +114,8 @@ class Authentication
 
         $response = $curlRequest->data;
         return (object)[
-            'success' => false,
-            'message' => 'Login gagal',
+            'success' => true,
+            'message' => 'Login sukses',
         ];
     }
 
