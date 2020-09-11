@@ -13,7 +13,7 @@ trait BaseRequest
     protected $timeout = 60;    // in second
     protected $cookieDir;
     protected $cookieName;
-    protected $debug = true;
+    protected $debug = false;
 
     protected $ipAddress;
 
@@ -34,6 +34,11 @@ trait BaseRequest
         if (isset($configuration['cookie_name'])) {
             $this->setCookieName($configuration['cookie_name']);
         }
+    }
+
+    public function setDebug(bool $debug)
+    {
+        $this->debug = $debug;
     }
 
     public function setBaseUrl(string $baseUrl)
