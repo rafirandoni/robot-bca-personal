@@ -90,10 +90,13 @@ class Inquiry
         $response = $curlRequest->data;
 
         $parsedResponse = $this->parseStatementList($response);
+        if (! $parsedResponse->success) {
+            return $parsedResponse;
+        }
 
         return (object)[
             'success' => true,
-            'data' => $parsedResponse->data,
+            'data' => isset($parsedResponse->data) ? $parsedResponse->data : [],
         ];
     }
 
