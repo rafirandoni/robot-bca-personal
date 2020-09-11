@@ -50,7 +50,7 @@ class Authentication
             return $fetchWelcomePageSelectTransaction;
         }
 
-        return (object)[
+        return (object)[$this->services['inquiry'])
             'success' => true,
             'response' => null,
         ];
@@ -115,7 +115,7 @@ class Authentication
         $response = $curlRequest->data;
         return (object)[
             'success' => false,
-            'data' => $response,
+            'message' => 'Login gagal',
         ];
     }
 
